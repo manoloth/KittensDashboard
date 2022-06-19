@@ -17,6 +17,8 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             "getMaxComped": "Maximum Helpful Compediums",
             "getBlueprintCraft": "Blueprints Per Craft",
 
+            "trade": "Trade",
+
             "titanium": "Titanium",
 
             "getTitPerZebraTrade": "Titanium Per Zebra Trade",
@@ -276,6 +278,74 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
     getBlueprintCraft: function(){
         return 1 + this.game.getResCraftRatio("blueprint");
     },
+
+
+    // TRADE: 
+    renderTradeQuantity: function(game, race, good, tr) {
+        let currentSeason = game.calendar.getCurSeason().name;
+        let baseTradeRatio = 1 + this.game.diplomacy.getTradeRatio();
+        let tradeRatio = baseTradeRatio + game.diplomacy.calculateTradeBonusFromPolicies(race.name, game) + game.challenges.getChallenge("pacifism").getTradeBonusEffect(game);
+        let res = game.resPool.get(good.name);
+        let average = good.value * tradeRatio * (1 + race.energy * 0.02) * (1 + (good.seasons ? good.seasons[currentSeason] : 0));
+
+        let min = game.getDisplayValueExt(average * (1 - good.width / 2), false, false, 0),
+            max = game.getDisplayValueExt(average * (1 + good.width / 2), false, false, 0);
+        if (tr != undefined) {
+            dojo.create("td", {className: "trade-offer-range-align", innerHTML: min + '-' + max}, tr);
+        }
+        return [min, max];
+    },
+    renderTradeInfo: function(container){
+        let table = dojo.create("table", null, container);
+        let embassyEffect = game.ironWill ? 0.0025 : 0.01;
+
+        let trades = [];
+        for (let r = 0; r < game.diplomacy.races.length; r++) {
+            let race = game.diplomacy.races[r]
+            let headRow = dojo.create("tr", {}, table);;
+            dojo.create("th", {}, headRow);
+            dojo.create("th", {colspan: 1, innerHTML: $I("trade.race." + race.name)}, headRow);
+
+            let attitudeFromPolicies = this.game.diplomacy.calculateStandingFromPolicies(race.name, this.game);
+            let attitude = race.standing > 0 ? race.standing : race.standing + this.game.getEffect("standingRatio") + attitudeFromPolicies;
+
+            dojo.create("td", {innerHTML: game.getDisplayValueExt(attitude * 100, false, false, 0) + "%"}, headRow);
+
+            for (let i = 0; i < race.sells.length; i++) {
+                let tr = dojo.create("tr", {}, table);
+                let good = race.sells[i];
+
+                let tradeChance = race.sells[i].chance *
+                    (1 + (
+                        race.embassyPrices ?
+                        this.game.getLimitedDR(race.embassyLevel * embassyEffect, 0.75) :
+                        0)
+                    );
+
+                dojo.create("th", {innerHTML: $I("resources." + good.name + ".title")}, tr);
+
+                dojo.create("td", {
+                    innerHTML: game.getDisplayValueExt(Math.min(tradeChance * 100, 100), false, false, 2) + "%",
+                    title: game.getDisplayValueExt(tradeChance * 100)
+                }, tr);
+
+                this.renderTradeQuantity(game, race, good, tr);
+
+            }
+            if (race.name === "zebras") {
+                let shipAmount = game.resPool.get("ship").value;
+                let zebraRelationModifierTitanium = game.getEffect("zebraRelationModifier") * game.bld.getBuildingExt("tradepost").meta.effects["tradeRatio"];
+
+                let tradeChance = 0.15 + shipAmount * 0.0035;
+                let quantity = 1.5 + shipAmount * 0.03;
+                let tr = dojo.create("tr", {}, table);
+                dojo.create("th", {innerHTML: $I("resources.titanium.title")}, tr);
+                dojo.create("td", {innerHTML: game.getDisplayValueExt(Math.min(tradeChance*100, 100)) + "%"}, tr);
+                dojo.create("td", {innerHTML: game.getDisplayValueExt(quantity)}, tr);
+            }
+        }
+    },
+
 
     // TITANIUM :
 
@@ -827,6 +897,10 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             // title: "Science"
         },
         {
+            name: "trade",
+            useFunction: "renderTradeInfo",
+        },
+        {
             name: "titanium",
             // title: "Titanium"
         },
@@ -869,7 +943,8 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
                 self.statGroups.push(
                     {
                         group: self.stats[statDefinition.name],
-                        title: self.i18n(statDefinition.name)
+                        title: self.i18n(statDefinition.name),
+                        useFunction: statDefinition.useFunction,
                     }
                 )
             }
@@ -917,7 +992,12 @@ dojo.declare("classes.tab.NummonTab", com.nuclearunicorn.game.ui.tab, {
             dojo.create("h1", {
                 innerHTML: statGroup.title
             }, this.container);
-            
+
+            if (typeof(statGroup.useFunction) === 'string') {
+                this.game.nummon[statGroup.useFunction](this.container);
+                continue;
+            }
+
             var stats = statGroup.group;
             var table = dojo.create("table", {class: 'statTable'}, this.container);
             
