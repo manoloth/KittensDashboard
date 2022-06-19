@@ -298,7 +298,7 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         return [min, max];
     },
     renderTradeInfo: function(container){
-        let table = dojo.create("table", null, container);
+        let table = dojo.create("table", {class: 'statTable'}, container);
         let embassyEffect = game.ironWill ? 0.0025 : 0.01;
 
         let trades = [];
