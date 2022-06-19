@@ -52,6 +52,8 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             "getRelicPerTCRefine": "Relics Per Time Crystal Refine",
             "getTradeAmountAvg": "Time Crystal income expected value by Per.Combust TC",
             "getResourceRetrievalTCBackYears": "Next ResourceRetrieval get TC back of game years",
+
+            "pollution": "Pollution",
             
             "others": "Others",
 
