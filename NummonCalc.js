@@ -39,6 +39,7 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             "getReligionProductionBonusCap": "Solar Revolution Limit (%)",
             "getNextTranscendTierProgress": "Progress to Next Transcendence Tier",
             "getApocryphaProgress": "Rec.Progress to Transcend Tier Progress",
+            "getApocryphaAfterAdore": "Apocrypha After Adoring the Galaxy",
             
             "paragon": "Paragon Bonus",
 
@@ -577,6 +578,15 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         return perc + "%";
     },
 
+    getApocryphaAfterAdore: function(){
+        const bonusRatio = 1.01;
+        let faithRatio = this.game.religion.faithRatio;
+        var ttPlus1 = (this.game.religion.getRU("transcendence").on ? this.game.religion.transcendenceTier : 0) + 1;
+        faithRatio += this.game.religion.faith / 1000000 * ttPlus1 * ttPlus1 * bonusRatio;
+        let apoc = this.game.getUnlimitedDR(faithRatio, 0.1) * 0.1;
+        return this.game.getDisplayValue((apoc) * 100) + "%";
+    },
+
     // PARAGON :
 
     getParagonProductionBonus: function(){
@@ -912,6 +922,10 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             {
                 name: "getApocryphaProgress",
                 // title: "Progress to Next Transcendence Tier",
+                val: 0,
+            },
+            {
+                name: "getApocryphaAfterAdore",
                 val: 0,
             },
         ],
