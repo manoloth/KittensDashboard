@@ -638,6 +638,89 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             return this.i18n("best.none");
         }
     },
+
+    // Pollution :
+    getPollutionEffects() {
+        var pollution = Object.values(this.game.bld.metaCache)
+        .map(e => e.meta)
+        .flatMap(bld => {
+            if (bld.effects === undefined) {
+                return [];
+            }
+            return Object.entries(bld.effects).map(([key, value]) => {
+                return {
+                    name: bld.name,
+                    quantityOn: bld.on,
+                    quantity: bld.val,
+                    key,
+                    value, 
+                }
+            })
+        })
+        .filter((e) => /pollution/i.test(e.key));
+        return pollution;
+    },
+    getPerBuildingPollution: function() {
+        const pollutionRatio = this.game.bld.getPollutionRatio() * (1 + this.game.getEffect("cathPollutionRatio"));// + this.game.getEffect("cathPollutionPerTickCon");
+        let pollution = this.getPollutionEffects();
+        let pollutionTable = {};
+
+        for (let {name, key, value, quantity, quantityOn} of pollution) {
+            if (!(name in pollutionTable)) {
+                pollutionTable[name] = {
+                    name, quantity, quantityOn,
+                    value: 0,
+                };
+            }
+            if (key === "cathPollutionPerTickProd") {
+                pollutionTable[name].value += value * quantityOn * pollutionRatio;
+            } else if (key === "cathPollutionPerTickCon") {
+                pollutionTable[name].value += value * quantityOn;
+            }
+        }
+        return pollutionTable;
+    },
+    renderPerBuildingPollutionTable: function(container) {
+        let pollution = this.getPerBuildingPollution();
+
+        let table = dojo.create("table", {class: 'statTable'}, container);
+
+        this.renderRow(table,
+            {text: "Building", tag: "th"},
+            {text: "Per Building", tag: "th"},
+            {text: "Quantity", tag: "th"},
+            {text: "Total", tag: "th"},
+        );
+
+
+        for (let [name, {quantity, quantityOn, value}] of Object.entries(pollution)) {
+            this.renderRow(table,
+                {text: $I(`buildings.${name}.label`), tag: "th"},
+
+                this.game.getDisplayValueExt(quantityOn === 0 ? 0 : value / quantityOn * this.game.getTicksPerSecondUI()),
+                quantityOn + "/" + quantity,
+                this.game.getDisplayValueExt(value * this.game.getTicksPerSecondUI())
+            );
+        }
+    },
+    renderPollutionSection: function(container) {
+        this.renderPerBuildingPollutionTable(container);
+
+        dojo.create('br', undefined, container);
+
+        let table = dojo.create('table', {class: 'statTable'}, container);
+
+        this.renderRow(table,
+            {text: "Net Pollution per Second", tag: "td"},
+            this.game.getDisplayValueExt(this.game.bld.cathPollutionPerTick * this.game.getTicksPerSecondUI())
+        );
+        this.renderRow(table,
+            {text:"Total Pollution", tag: "td"},
+            (this.game.bld.cathPollution/100e3).toLocaleString() + "ppm"
+        );
+    },
+
+
     // OTHERS : 
 
     getBestMagnetoBuilding: function() {
@@ -933,6 +1016,10 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             // title: "Time"
         },
         {
+            name: "pollution",
+            useFunction: "renderPollutionSection",
+        },
+        {
             name: "others",
             // title: "Others"
         }
@@ -967,6 +1054,21 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
                 this.statGroups[i].group[j].calculate = this[this.statGroups[i].group[j].name];
             }
         }
+    },
+
+    renderRow: function(parent, ...cells) {
+        let tr = dojo.create("tr", undefined, parent);
+        for (let value of cells) {
+            if (typeof(value) !== "object") {
+                let node = dojo.create("td", undefined, tr);
+                node.textContent = value;
+            } else {
+                let nodeName = value.tag ?? "td";
+                let node = dojo.create(nodeName, undefined, tr);
+                node.textContent = value.text;
+            }
+        }
+        return tr;
     },
     
     getStat: function(name){
