@@ -24,6 +24,7 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             "getTitPerZebraTrade": "Titanium Per Zebra Trade",
             "getZebraTradesLeftToMaxTit": "Trades Left to Cap Titanium",
             "getZebraTradesToMaxTit": "Max Zebra Trades to Cap Titanium",
+            "getZebraTitTradeChance": "Chance to Recieve Titanium Per Zebra Trade",
             
             "unicorns": "Unicorns",
 
@@ -336,11 +337,11 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
                 let shipAmount = game.resPool.get("ship").value;
                 let zebraRelationModifierTitanium = game.getEffect("zebraRelationModifier") * game.bld.getBuildingExt("tradepost").meta.effects["tradeRatio"];
 
-                let tradeChance = 0.15 + shipAmount * 0.0035;
-                let quantity = 1.5 + shipAmount * 0.03;
+                let tradeChance = this.getZebraTitTradeChance();
+                let quantity = this.getTitPerZebraTrade();
                 let tr = dojo.create("tr", {}, table);
                 dojo.create("th", {innerHTML: $I("resources.titanium.title")}, tr);
-                dojo.create("td", {innerHTML: game.getDisplayValueExt(Math.min(tradeChance*100, 100)) + "%"}, tr);
+                dojo.create("td", {innerHTML: tradeChance}, tr);
                 dojo.create("td", {innerHTML: game.getDisplayValueExt(quantity)}, tr);
             }
         }
@@ -370,6 +371,13 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         if(titToFill < 0)
             titToFill = 0;
         return titToFill;
+    },
+    getZebraTitTradeChance: function(){
+        let shipAmount = game.resPool.get("ship").value;
+        let zebraRelationModifierTitanium = game.getEffect("zebraRelationModifier") * game.bld.getBuildingExt("tradepost").meta.effects["tradeRatio"];
+
+        let tradeChance = 0.15 + shipAmount * 0.0035;
+        return game.getDisplayValueExt(Math.min(tradeChance*100, 100)) + "%";
     },
 
     // UNICORN :
@@ -775,6 +783,10 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
                 // title: "Max Zebra Trades to Cap Titanium",
                 val: 0,
             },
+            {
+                name: "getZebraTitTradeChance",
+                val: 0,
+            }
         ],
         unicorns: [
             {
