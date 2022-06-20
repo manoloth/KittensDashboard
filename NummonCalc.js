@@ -40,6 +40,9 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             "getNextTranscendTierProgress": "Progress to Next Transcendence Tier",
             "getApocryphaProgress": "Rec.Progress to Transcend Tier Progress",
             "getApocryphaAfterAdore": "Apocrypha After Adoring the Galaxy",
+            "getEffectivePraiseValue": "Effective Praise Value",
+            "getWorshipAfterPraise": "Worship After Praising",
+            "getSolRevBonusAfterPraise": "Solar Revolution Bonus After Praising",
             
             "paragon": "Paragon Bonus",
 
@@ -588,6 +591,21 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         let apoc = this.game.getUnlimitedDR(faithRatio, 0.1) * 0.1;
         return this.game.getDisplayValue((apoc) * 100) + "%";
     },
+    getEffectivePraiseValue: function() {
+        var faith = this.game.resPool.get("faith");
+        return faith.value * (1 + this.game.religion.getApocryphaBonus()); //starting up from 100% ratio will work surprisingly bad
+    },
+    getWorshipAfterPraise: function() {
+        return this.game.getDisplayValueExt(this.game.religion.faith + this.getEffectivePraiseValue())
+    },
+    getSolRevBonusAfterPraise: function() {
+        // this.game.religion.faith + this.getEffectivePraiseValue()
+        var uncappedBonus = this.game.religion.getRU("solarRevolution").on ? this.game.getUnlimitedDR(this.game.religion.faith + this.getEffectivePraiseValue(), 1000) / 100 : 0;
+        
+        let bonus = this.game.getLimitedDR(uncappedBonus, 10 + this.game.getEffect("solarRevolutionLimit") + (this.game.challenges.getChallenge("atheism").researched ? (this.game.religion.transcendenceTier) : 0)) * (1 + this.game.getLimitedDR(this.game.getEffect("faithSolarRevolutionBoost"), 4));
+
+        return this.game.getDisplayValue(bonus * 100) + "%";
+    },
 
     // PARAGON :
 
@@ -928,6 +946,18 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             },
             {
                 name: "getApocryphaAfterAdore",
+                val: 0,
+            },
+            {
+                name: "getEffectivePraiseValue",
+                val: 0,
+            },
+            {
+                name: "getWorshipAfterPraise",
+                val: 0,
+            },
+            {
+                name: "getSolRevBonusAfterPraise",
                 val: 0,
             },
         ],
