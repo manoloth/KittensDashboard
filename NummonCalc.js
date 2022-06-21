@@ -233,7 +233,7 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             baseProd *= this.game.ticksPerSecond;
             return baseProd;
         },
-    
+/*
     getCatnipColdWinter: function(){
         var Season = this.game.calendar.seasons;
         for (var i in Season){
@@ -262,6 +262,73 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         WarmSpringRatio *= 1 + this.game.getLimitedDR(this.game.getEffect("springCatnipRatio"), 2);
         var catnip = this.getPotentialCatnip(WarmSpringRatio);
         return catnip;
+    },
+//*/
+    getWeatherMod: function(res, weather, season) {
+        let currentSeason = this.game.calendar.seasons[season];
+
+        var mod = currentSeason.modifiers[res.name] ? currentSeason.modifiers[res.name] : 1;
+
+        if (res.name != "catnip") {
+            return mod;
+        }
+
+        if (this.game.science.getPolicy("communism").researched && currentSeason.name == "winter" && weather == "cold"){
+            return 0;
+        }
+
+        if (weather == "warm"){
+            mod +=  0.15;
+        } else if (weather == "cold"){
+            mod += -0.15;
+        }
+        if (this.game.challenges.getChallenge("winterIsComing").on && weather == "cold") {
+            mod *= 1 + this.game.getLimitedDR(this.game.getEffect("coldHarshness"),1);
+        }
+        if (currentSeason.name == "spring") {
+            mod *= (1 + this.game.getLimitedDR(this.game.getEffect("springCatnipRatio"), 2));
+        }
+
+        return mod;
+    },
+    renderCatnipTable: function(container) {
+        const catnip = this.game.resPool.get("catnip");2
+        const weathers = [null, "warm", "cold"];
+        const COLUMN_HIGHLIGHT_CLASS = "highlited";
+        const ROW_HIGHLIGHT_CLASS = "highlited";
+        let table = dojo.create("table", {class: "statTable stats-wider"}, container);
+        let cell = null, tr = null;
+
+        tr = dojo.create("tr", undefined, table);
+        
+        cell = dojo.create("th", undefined, tr);
+        cell = dojo.create("th", {style: game.calendar.season === 0 ? COLUMN_HIGHLIGHT_CLASS : ""}, tr); cell.textContent = $I("calendar.season.spring");
+        cell = dojo.create("th", {style: game.calendar.season === 1 ? COLUMN_HIGHLIGHT_CLASS : ""}, tr); cell.textContent = $I("calendar.season.summer");
+        cell = dojo.create("th", {style: game.calendar.season === 2 ? COLUMN_HIGHLIGHT_CLASS : ""}, tr); cell.textContent = $I("calendar.season.autumn");
+        cell = dojo.create("th", {style: game.calendar.season === 3 ? COLUMN_HIGHLIGHT_CLASS : ""}, tr); cell.textContent = $I("calendar.season.winter");
+1
+        for (let w/*eather*/ = 0; w < 3; w++) {
+            tr = dojo.create("tr", undefined, table);
+            cell = dojo.create("th", undefined, tr);
+            if (weathers[w] !== null) {
+                cell.textContent = $I('calendar.weather.' + weathers[w]);
+            }
+            for (let s/*eason*/ = 0; s < this.game.calendar.seasons.length; s++) {
+                cell = dojo.create("td", undefined, tr);
+                if (game.calendar.season === s) {
+                    dojo.addClass(cell, ROW_HIGHLIGHT_CLASS);
+                }
+                if (game.calendar.weather === weathers[w]) {
+                    dojo.addClass(cell, ROW_HIGHLIGHT_CLASS);
+                }
+                let mod = this.getWeatherMod(catnip, weathers[w], s);
+                let catnipValue = this.getPotentialCatnip(mod);
+                let text = game.getDisplayValue(catnipValue)
+                // text += " (" + mod + ")";
+                cell.textContent = text;
+                cell.title = mod;
+            }
+        }
     },
 
     // SCIENCE :
@@ -879,6 +946,7 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
     //==============================================================================================================================================
     
     stats: {
+        /*
         catnip: [
             {
                 name: "getCatnipInWarmSpring",
@@ -891,6 +959,7 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
                 val: 0,
             }
         ],
+        //*/
         science: [
             {
                 name: "getCelestialPerDay",
@@ -1064,6 +1133,7 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         {
             name: "catnip",
             // title: "Catnip / Sec"
+            useFunction: "renderCatnipTable",
         },
         {
             name: "science",
