@@ -169,13 +169,13 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
     getButtonPrice: function(tabPanel, buttonName, resName){
         for (var i in tabPanel){
             if(tabPanel[i].id == buttonName){
-                var bunttonModel = tabPanel[i].model;
+                var buttonModel = tabPanel[i].model;
                 break;
             }
         }
-        for (var a in bunttonModel.prices){
-            if(bunttonModel.prices[a].name == resName){
-                var cost = bunttonModel.prices[a].val;
+        for (var a in buttonModel.prices){
+            if(buttonModel.prices[a].name == resName){
+                var cost = buttonModel.prices[a].val;
                 break;
             }
         }
