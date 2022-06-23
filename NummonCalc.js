@@ -291,44 +291,47 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
 
         return mod;
     },
-    renderCatnipTable: function(container) {
-        const catnip = this.game.resPool.get("catnip");2
+    renderCatnipTable: function() {
+        const catnip = this.game.resPool.get("catnip");
         const weathers = [null, "warm", "cold"];
         const COLUMN_HIGHLIGHT_CLASS = "highlited";
         const ROW_HIGHLIGHT_CLASS = "highlited";
-        let table = dojo.create("table", {class: "statTable stats-wider"}, container);
         let cell = null, tr = null;
 
-        tr = dojo.create("tr", undefined, table);
-        
-        cell = dojo.create("th", undefined, tr);
-        cell = dojo.create("th", {style: game.calendar.season === 0 ? COLUMN_HIGHLIGHT_CLASS : ""}, tr); cell.textContent = $I("calendar.season.spring");
-        cell = dojo.create("th", {style: game.calendar.season === 1 ? COLUMN_HIGHLIGHT_CLASS : ""}, tr); cell.textContent = $I("calendar.season.summer");
-        cell = dojo.create("th", {style: game.calendar.season === 2 ? COLUMN_HIGHLIGHT_CLASS : ""}, tr); cell.textContent = $I("calendar.season.autumn");
-        cell = dojo.create("th", {style: game.calendar.season === 3 ? COLUMN_HIGHLIGHT_CLASS : ""}, tr); cell.textContent = $I("calendar.season.winter");
-1
+        let rows = [];
+        tr = $r("tr", {key: "catnip-header"}, 
+            $r("th", {}), 
+            $r("th", {className: game.calendar.season === 0 ? COLUMN_HIGHLIGHT_CLASS : ""}, $I("calendar.season.spring")),
+            $r("th", {className: game.calendar.season === 1 ? COLUMN_HIGHLIGHT_CLASS : ""}, $I("calendar.season.summer")),
+            $r("th", {className: game.calendar.season === 2 ? COLUMN_HIGHLIGHT_CLASS : ""}, $I("calendar.season.autumn")),
+            $r("th", {className: game.calendar.season === 3 ? COLUMN_HIGHLIGHT_CLASS : ""}, $I("calendar.season.winter")),
+        );
+        rows.push(tr);
         for (let w/*eather*/ = 0; w < 3; w++) {
-            tr = dojo.create("tr", undefined, table);
-            cell = dojo.create("th", undefined, tr);
-            if (weathers[w] !== null) {
-                cell.textContent = $I('calendar.weather.' + weathers[w]);
-            }
+            let cells = [];
+            cell = $r("th", {className: game.calendar.weather === weathers[w] ? ROW_HIGHLIGHT_CLASS : "", key: w + "-header"}, 
+                weathers[w] !== null ? $I('calendar.weather.' + weathers[w]) : ""
+            );
+            cells.push(cell);
             for (let s/*eason*/ = 0; s < this.game.calendar.seasons.length; s++) {
-                cell = dojo.create("td", undefined, tr);
-                if (game.calendar.season === s) {
-                    dojo.addClass(cell, ROW_HIGHLIGHT_CLASS);
-                }
-                if (game.calendar.weather === weathers[w]) {
-                    dojo.addClass(cell, ROW_HIGHLIGHT_CLASS);
-                }
                 let mod = this.getWeatherMod(catnip, weathers[w], s);
                 let catnipValue = this.getPotentialCatnip(mod);
                 let text = game.getDisplayValue(catnipValue)
                 // text += " (" + mod + ")";
-                cell.textContent = text;
-                cell.title = mod;
+
+                cells.push($r("td", {
+                    title: mod,
+                    className: [
+                        (game.calendar.season === s ? COLUMN_HIGHLIGHT_CLASS : ""),
+                        (game.calendar.weather === weathers[w] ? ROW_HIGHLIGHT_CLASS : ""),
+                    ].join(" "),
+                    key: w + "-" + s,
+                }, text));
             }
+
+            rows.push($r("tr", {key: w + "-rows"}, cells));
         }
+        return $r("table", {className: "statTable stats-wider", key: "table-catnip"}, rows);
     },
 
     // SCIENCE :
@@ -382,7 +385,7 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
 
 
     // TRADE: 
-    renderTradeQuantity: function(game, race, good, tr) {
+    renderTradeQuantity: function(game, race, good) {
         let currentSeason = game.calendar.getCurSeason().name;
         let baseTradeRatio = 1 + this.game.diplomacy.getTradeRatio();
         let tradeRatio = baseTradeRatio + game.diplomacy.calculateTradeBonusFromPolicies(race.name, game) + game.challenges.getChallenge("pacifism").getTradeBonusEffect(game);
@@ -391,29 +394,22 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
 
         let min = game.getDisplayValueExt(average * (1 - good.width / 2), false, false, 0),
             max = game.getDisplayValueExt(average * (1 + good.width / 2), false, false, 0);
-        if (tr != undefined) {
-            dojo.create("td", {className: "trade-offer-range-align", innerHTML: min + '-' + max}, tr);
-        }
-        return [min, max];
+        return $r("td", {className: "trade-offer-range-align"}, min + '-' + max);
     },
-    renderTradeInfo: function(container){
-        let table = dojo.create("table", {class: 'statTable'}, container);
+    renderTradeInfo: function(){
         let embassyEffect = game.ironWill ? 0.0025 : 0.01;
-
-        let trades = [];
+        let rows = [];
+        
         for (let r = 0; r < game.diplomacy.races.length; r++) {
             let race = game.diplomacy.races[r]
-            let headRow = dojo.create("tr", {}, table);;
-            dojo.create("th", {}, headRow);
-            dojo.create("th", {colspan: 1, innerHTML: $I("trade.race." + race.name)}, headRow);
-
             let attitudeFromPolicies = this.game.diplomacy.calculateStandingFromPolicies(race.name, this.game);
             let attitude = race.standing > 0 ? race.standing : race.standing + this.game.getEffect("standingRatio") + attitudeFromPolicies;
-
-            dojo.create("td", {innerHTML: game.getDisplayValueExt(attitude * 100, false, false, 0) + "%"}, headRow);
-
+            rows.push($r("tr", {key: race.name+".header"}, 
+                $r("th", {}),
+                $r("th", {colSpan: 1}, $I("trade.race." + race.name)),
+                $r("td", {}, game.getDisplayValueExt(attitude * 100, false, false, 0) + "%"),
+            ));
             for (let i = 0; i < race.sells.length; i++) {
-                let tr = dojo.create("tr", {}, table);
                 let good = race.sells[i];
 
                 let tradeChance = race.sells[i].chance *
@@ -423,14 +419,14 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
                         0)
                     );
 
-                dojo.create("th", {innerHTML: $I("resources." + good.name + ".title")}, tr);
-
-                dojo.create("td", {
-                    innerHTML: game.getDisplayValueExt(Math.min(tradeChance * 100, 100), false, false, 2) + "%",
-                    title: game.getDisplayValueExt(tradeChance * 100)
-                }, tr);
-
-                this.renderTradeQuantity(game, race, good, tr);
+                rows.push($r("tr", {key: race.name+"." +i}, 
+                    $r("th", {}, $I("resources." + good.name + ".title")),
+                    $r("td", 
+                        {title: game.getDisplayValueExt(tradeChance * 100)}, 
+                        game.getDisplayValueExt(Math.min(tradeChance * 100, 100), false, false, 2) + "%"),
+                        this.renderTradeQuantity(game, race, good),
+                    ),
+                );
 
             }
             if (race.name === "zebras") {
@@ -439,12 +435,14 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
 
                 let tradeChance = this.getZebraTitTradeChance();
                 let quantity = this.getTitPerZebraTrade();
-                let tr = dojo.create("tr", {}, table);
-                dojo.create("th", {innerHTML: $I("resources.titanium.title")}, tr);
-                dojo.create("td", {innerHTML: tradeChance}, tr);
-                dojo.create("td", {innerHTML: game.getDisplayValueExt(quantity)}, tr);
+                rows.push($r("tr", {key: "zebre-titanium"}, 
+                    $r("th", {}, $I("resources.titanium.title")),
+                    $r("td", {}, tradeChance),
+                    $r("td", {}, game.getDisplayValueExt(quantity)),
+                ));
             }
         }
+        return $r("table", {className: 'statTable stats-wider', key: "table-trade"}, rows);
     },
 
 
@@ -807,44 +805,45 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         }
         return pollutionTable;
     },
-    renderPerBuildingPollutionTable: function(container) {
+    renderPerBuildingPollutionTable: function() {
         let pollution = this.getPerBuildingPollution();
 
-        let table = dojo.create("table", {class: 'statTable'}, container);
+        return $r("table", {className: 'statTable stats-wider', key: "pollutionTable"}, 
+            $r("tr", {},
+                $r("th", {}, "Building"),
+                $r("th", {}, "Per Building"),
+                $r("th", {}, "Quantity"),
+                $r("th", {}, "Total"),
+            ),
 
-        this.renderRow(table,
-            {text: "Building", tag: "th"},
-            {text: "Per Building", tag: "th"},
-            {text: "Quantity", tag: "th"},
-            {text: "Total", tag: "th"},
+
+            Object.entries(pollution).map(([name, {quantity, quantityOn, value}], i) => {
+                return $r("tr", {key: i},
+                    $r("th", {}, $I(`buildings.${name}.label`)),
+
+                    $r("td", {}, this.game.getDisplayValueExt(quantityOn === 0 ? 0 : value / quantityOn * this.game.getTicksPerSecondUI())),
+                    $r("td", {}, quantityOn + "/" + quantity),
+                    $r("td", {}, this.game.getDisplayValueExt(value * this.game.getTicksPerSecondUI()))
+                );
+            }),
         );
-
-
-        for (let [name, {quantity, quantityOn, value}] of Object.entries(pollution)) {
-            this.renderRow(table,
-                {text: $I(`buildings.${name}.label`), tag: "th"},
-
-                this.game.getDisplayValueExt(quantityOn === 0 ? 0 : value / quantityOn * this.game.getTicksPerSecondUI()),
-                quantityOn + "/" + quantity,
-                this.game.getDisplayValueExt(value * this.game.getTicksPerSecondUI())
-            );
-        }
     },
     renderPollutionSection: function(container) {
-        this.renderPerBuildingPollutionTable(container);
+        return [
+            this.renderPerBuildingPollutionTable(),
+            $r("br"),
 
-        dojo.create('br', undefined, container);
-
-        let table = dojo.create('table', {class: 'statTable'}, container);
-
-        this.renderRow(table,
-            {text: "Net Pollution per Second", tag: "td"},
-            this.game.getDisplayValueExt(this.game.bld.cathPollutionPerTick * this.game.getTicksPerSecondUI())
-        );
-        this.renderRow(table,
-            {text:"Total Pollution", tag: "td"},
-            (this.game.bld.cathPollution/100e3).toLocaleString() + "ppm"
-        );
+            $r("table", {className: "statTable stats-wider", key: "polutionBonusInfo"},
+                $r("tr", {}, 
+                    $r("td", {}, "Net Pollution per Second"),
+                    $r("td", {}, this.game.getDisplayValueExt(this.game.bld.cathPollutionPerTick * this.game.getTicksPerSecondUI())),
+                ),
+                $r("tr", {}, 
+                    $r("td", {}, "Total Pollution"),
+                    $r("td", {}, (this.game.bld.cathPollution/100e3).toLocaleString() + "ppm"),
+                ),
+            ),
+        ];
     },
 
 
@@ -1204,21 +1203,6 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         }
     },
 
-    renderRow: function(parent, ...cells) {
-        let tr = dojo.create("tr", undefined, parent);
-        for (let value of cells) {
-            if (typeof(value) !== "object") {
-                let node = dojo.create("td", undefined, tr);
-                node.textContent = value;
-            } else {
-                let nodeName = value.tag ?? "td";
-                let node = dojo.create(nodeName, undefined, tr);
-                node.textContent = value.text;
-            }
-        }
-        return tr;
-    },
-    
     getStat: function(name){
         return this[name]();
     },
@@ -1240,46 +1224,52 @@ dojo.declare("classes.tab.NummonTab", com.nuclearunicorn.game.ui.tab, {
     constructor: function(tabName){
     },
     
+    NummonContainer: React.createClass({
+        render() {
+            return this.props.game.nummonTab.renderReact();
+        }
+    }),
+
     render: function(content){
         this.container = content;
-        
+
         this.update();
     },
     
-    update: function(){
-        dojo.empty(this.container);
-        
-        for(var idx in this.game.nummon.statGroups){
-            var statGroup = this.game.nummon.statGroups[idx];
-            dojo.create("h1", {
-                innerHTML: statGroup.title
-            }, this.container);
+    update: function() {
+        let wrapper = new mixin.IReactAware(this.NummonContainer, this.game);
+        this.inherited(arguments);
+        wrapper.render(this.container);
+    },
 
-            if (typeof(statGroup.useFunction) === 'string') {
-                this.game.nummon[statGroup.useFunction](this.container);
-                continue;
-            }
+    renderReact: function(){
+        return $r("div", {}, 
+            this.game.nummon.statGroups.map((statGroup, idx, statGroups) => {
+                let header = $r("h1", {key: statGroup.name + ".header"}, statGroup.title);
+                let table;
 
-            var stats = statGroup.group;
-            var table = dojo.create("table", {class: 'statTable'}, this.container);
-            
-            for(var i in stats){
-                var stat = stats[i];
-                var val = stat.val;
-                if(val == Infinity)
-                    val = "Infinity";
-                
-                stat.val = this.game.nummon[stat.name]();
-                
-                var tr = dojo.create("tr", null, table);
-                dojo.create("td", {
-                    innerHTML: this.game.nummon.i18n(stat.name)
-                }, tr);
-                dojo.create("td", {
-                    innerHTML: typeof val == "number" ? this.game.getDisplayValueExt(val) : val
-                }, tr);
-            }
-        }
+                if (typeof(statGroup.useFunction) === 'string') {
+                   table = this.game.nummon[statGroup.useFunction]();
+                } else {
+                    table = $r("table", {className: 'statTable', key: statGroup.name+".table"}, 
+                        statGroup.group.map((stat, i, stats) => {
+                            var val = stat.val;
+                            if(val == Infinity)
+                                val = "Infinity";
+                            
+                            stat.val = this.game.nummon[stat.name]();
+                            
+                            return $r("tr", {key: stat.name}, 
+                                $r("td", {}, this.game.nummon.i18n(stat.name)),
+                                $r("td", {}, typeof val == "number" ? this.game.getDisplayValueExt(val) : val),
+                            );
+                        })
+                   );
+                }
+
+                return [header, table];
+            })
+        );
     }
 });
 
