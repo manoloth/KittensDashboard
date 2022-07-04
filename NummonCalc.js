@@ -30,6 +30,9 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
 
             "getBestUniBuilding": "Best Unicorn Building",
             "getBestAliBuilding": "Best Alicorn Building Per Ivory Cost",
+            "getAlicornsPerHour": "Average Alicons Per Hour",
+            "getAvgTimeBetweenTimeCrystals": "Average Time Beween Alicorn Sacrifices",
+            "getAvgTimeCrystalsPerHour": "Average Time Crystals Per Hour",
             "getNecrocornsPerSecond": "Necrocorns Per Second",
             "getNecrocornTime": "Time Until Next Necrocorn",
             "getLeviChance": "Chance per year of Leviathans",
@@ -590,7 +593,23 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
 
         return this.i18n(bestBuilding[ priceBuilding.indexOf(Math.min(...priceBuilding)) + 1 ]);
     },
-    
+    getAlicornsPerSecond: function() {
+        let perTick = this.game.resPool.get("alicorn").perTickCached;
+
+        let alicornChancePerDay = this.game.getEffect("alicornChance");
+        alicornChancePerDay *= 1 + this.game.getLimitedDR(this.game.getEffect("alicornPerTickRatio"), 1.2);
+
+        return perTick * 5  + alicornChancePerDay / 2;
+    },
+    getAlicornsPerHour: function() {
+        return this.getAlicornsPerSecond() * 60 * 60;
+    },
+    getAvgTimeBetweenTimeCrystals: function() {
+        return this.game.toDisplaySeconds(25 / this.getAlicornsPerSecond());
+    },
+    getAvgTimeCrystalsPerHour: function() {
+        return this.game.getDisplayValue(this.getAlicornsPerHour() / 25 * this.getTCPerSacrifice());
+    },
     getNecrocornsPerSecond: function(){
         var numAlicorns = this.game.resPool.get("alicorn").value;
         var curCorruption = this.game.religion.corruption;
@@ -1012,6 +1031,15 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
                 name: "getBestAliBuilding",
                 // title: "Best Alicorn Building Per Ivory Cost",
                 val: 0,
+            },
+            {
+                name: "getAlicornsPerHour",
+            },
+            {
+                name: "getAvgTimeBetweenTimeCrystals",
+            },
+            {
+                name: "getAvgTimeCrystalsPerHour",
             },
             {
                 name: "getNecrocornsPerSecond",
