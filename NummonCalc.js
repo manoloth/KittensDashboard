@@ -423,7 +423,11 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
                     );
 
                 rows.push($r("tr", {key: race.name+"." +i}, 
-                    $r("th", {}, $I("resources." + good.name + ".title")),
+                    $r("th", {
+                        style: {
+                            color: this.game.resPool.get(good.name).color,
+                        },
+                    }, $I("resources." + good.name + ".title")),
                     $r("td", 
                         {title: game.getDisplayValueExt(tradeChance * 100)}, 
                         game.getDisplayValueExt(Math.min(tradeChance * 100, 100), false, false, 2) + "%"),
