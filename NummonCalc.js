@@ -395,8 +395,8 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         let res = game.resPool.get(good.name);
         let average = good.value * tradeRatio * (1 + race.energy * 0.02) * (1 + (good.seasons ? good.seasons[currentSeason] : 0));
 
-        let min = game.getDisplayValueExt(average * (1 - good.width / 2), false, false, 0),
-            max = game.getDisplayValueExt(average * (1 + good.width / 2), false, false, 0);
+        let min = game.getDisplayValueExt(average * (1 - good.width / 2), false, false, 1),
+            max = game.getDisplayValueExt(average * (1 + good.width / 2), false, false, 1);
         return $r("td", {className: "trade-offer-range-align"}, min + '-' + max);
     },
     renderTradeInfo: function(){
