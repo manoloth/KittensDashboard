@@ -199,7 +199,41 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             num = num.toString();
         return num;
     },
-
+    objectKeys: function*(object) {
+        for (let key in object) {
+            yield key;
+        }
+    },
+    objectValues: function*(object) {
+        for (let key in object) {
+            yield object[key];
+        }
+    },
+    objectEntries: function*(object) {
+        for (let key in object) {
+            yield [key, object[key]];
+        }
+    },
+    // Kind of assuming that all of the 
+    getEffects: function*(...caches) {
+        for (let cache of caches) {
+            for (let bld of this.objectValues(cache)) {
+                if (bld.meta?.effects == undefined) {
+                    continue;
+                }
+                for (let [key, value] of this.objectEntries(bld.meta.effects)) {
+                    yield {
+                        name: bld.meta.name,
+                        quantityOn: bld.meta.on,
+                        quantity: bld.meta.val,
+                        key,
+                        value,
+                    };
+                }
+            }
+        }
+    },
+    
     // CATNIP :
 
     getPotentialCatnip: function (number) {
@@ -788,25 +822,12 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
     },
 
     // Pollution :
-    getPollutionEffects() {
-        var pollution = Object.values(this.game.bld.metaCache)
-        .map(e => e.meta)
-        .flatMap(bld => {
-            if (bld.effects === undefined) {
-                return [];
+    getPollutionEffects: function*() {
+        for (let effect of this.getEffects(this.game.bld.metaCache)) {
+            if (effect.key.startsWith("cathPollutionPerTick")) {
+                yield effect;
             }
-            return Object.entries(bld.effects).map(([key, value]) => {
-                return {
-                    name: bld.name,
-                    quantityOn: bld.on,
-                    quantity: bld.val,
-                    key,
-                    value, 
-                }
-            })
-        })
-        .filter((e) => /pollution/i.test(e.key));
-        return pollution;
+        }
     },
     getPerBuildingPollution: function() {
         const pollutionRatio = this.game.bld.getPollutionRatio() * (1 + this.game.getEffect("cathPollutionRatio"));// + this.game.getEffect("cathPollutionPerTickCon");
