@@ -75,6 +75,7 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             "getDarkFutureYears": "Years until Dark Future",
             "getBestRelicBuilding": "Best improve Relic Building",
             "getAIlv15Time": "Time until AI level 15",
+            "getTimeUntilNextHashLevel": "Time until Next Hash Level",
             "getfutureSeason": "Seasons until next TemporalParadox",
 
             "best.none": "No Building",
@@ -997,6 +998,14 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         else
             return this.i18n("infinity");
     },
+
+    getTimeUntilNextHashLevel: function() {
+        let entangler = game.space.getBuilding("entangler");
+        let consumed = entangler.effects.gflopsConsumption * entangler.on * game.ticksPerSecond;
+        let remaining = entangler.effects.nextHashLevelAt - entangler.effects.hashrate;
+        
+        return game.toDisplaySeconds(remaining / consumed);
+    },
     
     getfutureSeason: function(){
         var TemporalParadox = this.game.calendar.futureSeasonTemporalParadox;
@@ -1206,6 +1215,9 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             {
                 name: "getAIlv15Time",
                 val: 0,
+            },
+            {
+                name: "getTimeUntilNextHashLevel"
             },
             {
                 name: "getfutureSeason",
