@@ -60,6 +60,13 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             "getResourceRetrievalTCBackYears": "Next ResourceRetrieval get TC back of game years",
 
             "pollution": "Pollution",
+
+            "antimatter": "Antimatter",
+            "getAntimatterPerYear": "Per Year",
+            "getAntimatterPerCycle": "Per Cycle",
+            "getAntimatterPer45Years": "Per 45 Years",
+            "getAntimatterPerEra": "Per Era",
+            "getAntimatterYearsUntilFull": "Years Until Full",
             
             "others": "Others",
 
@@ -890,6 +897,25 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         ];
     },
 
+    // ANTIMATTER : 
+    getAntimatterPerYear: function() {
+        return this.game.getEffect("antimatterProduction");
+    },
+    getAntimatterPerCycle: function() {
+        return this.getAntimatterPerYear() * this.game.calendar.yearsPerCycle;
+    },
+    getAntimatterPer45Years: function() {
+        return this.getAntimatterPerYear() * 45;
+    },
+    getAntimatterPerEra: function() {
+        return this.getAntimatterPerYear() * this.game.calendar.yearsPerCycle * this.game.calendar.cyclesPerEra;
+    },
+    getAntimatterYearsUntilFull: function() {
+        let AM = this.game.resPool.get("antimatter");
+        let years = Math.ceil((AM.maxValue - AM.value) / this.getAntimatterPerYear());
+        return years;
+    },
+
 
     // OTHERS : 
 
@@ -1127,6 +1153,13 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
                 val: 0,
             },
         ],
+        antimatter: [
+            {name: "getAntimatterPerYear"},
+            {name: "getAntimatterPerCycle"},
+            {name: "getAntimatterPer45Years"},
+            {name: "getAntimatterPerEra"},
+            {name: "getAntimatterYearsUntilFull"},
+        ],
         time: [
             {
                 name: "getTCPerSacrifice",
@@ -1218,6 +1251,9 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         {
             name: "pollution",
             useFunction: "renderPollutionSection",
+        },
+        {
+            name: "antimatter",
         },
         {
             name: "others",
