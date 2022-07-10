@@ -1373,10 +1373,25 @@ NummonInit = function(){
             case "time":
                 return this.timeTab;
             case "challenges":
-            	return this.challengesTab;
+              return this.challengesTab;
         }
     };
-    
+
+    window.addEventListener("keypress", function(event) {
+        if (event.target.tagName == 'INPUT' || event.target.tagName == 'TEXTAREA') {
+            return;
+        }
+        if (event.key.toLowerCase() === "n"
+            // && event.shiftKey === true
+            && event.ctrlKey === false
+            && event.altKey === false
+            && event.metaKey === false
+            ) {
+            event.preventDefault();
+            document.querySelector('a.tab.Nummon')?.click();
+        }
+    });
+
     gamePage.ui.render();
 }
 
