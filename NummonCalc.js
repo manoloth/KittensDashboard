@@ -441,7 +441,7 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
 
 
     // TRADE: 
-    renderTradeQuantity: function(game, race, good) {
+    renderTradeQuantity: function(race, good) {
         let currentSeason = game.calendar.getCurSeason().name;
         let baseTradeRatio = 1 + this.game.diplomacy.getTradeRatio();
         let tradeRatio = baseTradeRatio + game.diplomacy.calculateTradeBonusFromPolicies(race.name, game) + game.challenges.getChallenge("pacifism").getTradeBonusEffect(game);
@@ -460,11 +460,13 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             let race = game.diplomacy.races[r]
             let attitudeFromPolicies = this.game.diplomacy.calculateStandingFromPolicies(race.name, this.game);
             let attitude = race.standing > 0 ? race.standing : race.standing + this.game.getEffect("standingRatio") + attitudeFromPolicies;
-            rows.push($r("tr", {key: race.name+".header"}, 
+
+            rows.push($r("tr", {key: race.name + ".header"}, 
                 $r("th", {}),
                 $r("th", {colSpan: 1}, $I("trade.race." + race.name)),
                 $r("td", {}, game.getDisplayValueExt(attitude * 100, false, false, 0) + "%"),
             ));
+
             for (let i = 0; i < race.sells.length; i++) {
                 let good = race.sells[i];
 
@@ -480,7 +482,7 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
                     $r("td", 
                         {title: game.getDisplayValueExt(tradeChance * 100)}, 
                         game.getDisplayValueExt(Math.min(tradeChance * 100, 100), false, false, 2) + "%"),
-                        this.renderTradeQuantity(game, race, good),
+                        this.renderTradeQuantity(race, good),
                     ),
                 );
 
@@ -491,14 +493,14 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
 
                 let tradeChance = this.getZebraTitTradeChance();
                 let quantity = this.getTitPerZebraTrade();
-                rows.push($r("tr", {key: "zebre-titanium"}, 
+                rows.push($r("tr", {key: "zebra-titanium"}, 
                     this.renderResourceNameCell("titanium"),
                     $r("td", {}, tradeChance),
                     $r("td", {}, game.getDisplayValueExt(quantity)),
                 ));
             }
         }
-        return $r("table", {className: 'statTable stats-wider', key: "table-trade"}, rows);
+        return $r("table", {className: "statTable stats-wider", key: "table-trade"}, rows);
     },
 
 
