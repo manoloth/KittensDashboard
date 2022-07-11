@@ -245,6 +245,14 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         }
     },
     
+    renderResourceNameCell: function(name) {
+        return $r("th", {
+            style: {
+                color: this.game.resPool.get(name)?.color,
+            },
+        }, $I("resources." + name + ".title"))
+    },
+
     // CATNIP :
 
     getPotentialCatnip: function (number) {
@@ -468,11 +476,7 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
                     );
 
                 rows.push($r("tr", {key: race.name+"." +i}, 
-                    $r("th", {
-                        style: {
-                            color: this.game.resPool.get(good.name).color,
-                        },
-                    }, $I("resources." + good.name + ".title")),
+                    this.renderResourceNameCell(good.name),
                     $r("td", 
                         {title: game.getDisplayValueExt(tradeChance * 100)}, 
                         game.getDisplayValueExt(Math.min(tradeChance * 100, 100), false, false, 2) + "%"),
@@ -488,7 +492,7 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
                 let tradeChance = this.getZebraTitTradeChance();
                 let quantity = this.getTitPerZebraTrade();
                 rows.push($r("tr", {key: "zebre-titanium"}, 
-                    $r("th", {}, $I("resources.titanium.title")),
+                    this.renderResourceNameCell("titanium"),
                     $r("td", {}, tradeChance),
                     $r("td", {}, game.getDisplayValueExt(quantity)),
                 ));
