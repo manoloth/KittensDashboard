@@ -55,7 +55,10 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             "time": "Time",
 
             "getTCPerSacrifice": "Time Crystals per Sacrifice",
+            "getTCValueOfAlicorns": "TC Value of Current Alicorns",
+            "getRelicValueOfAlicorns": "Relic Value of Current Alicorns",
             "getRelicPerTCRefine": "Relics Per Time Crystal Refine",
+            "getRelicValueOfCurrentTCs": "Relic Value of Current Time Crystals",
             "getTradeAmountAvg": "Time Crystal income expected value by Per.Combust TC",
             "getResourceRetrievalTCBackYears": "Next ResourceRetrieval get TC back of game years",
 
@@ -783,8 +786,23 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         return numTCPerSacrifice;
     },
 
+    getTCValueOfAlicorns: function() {
+        const alicronsPerSacrifice = 25;
+        return Math.floor(this.game.resPool.get("alicorn").value / alicronsPerSacrifice) * this.getTCPerSacrifice();
+    },
+    getRelicRefineCost: function() {
+        return 25;
+    },
+    getRelicValueOfAlicorns: function() {
+        return Math.floor(this.getTCValueOfAlicorns() / this.getRelicRefineCost()) * this.getRelicPerTCRefine();
+    },
+
     getRelicPerTCRefine: function(){
         return 1 + this.game.getEffect("relicRefineRatio") * this.game.religion.getZU("blackPyramid").getEffectiveValue(this.game);
+    },
+
+    getRelicValueOfCurrentTCs: function() {
+        return Math.floor(this.game.resPool.get("timeCrystal").value / this.getRelicRefineCost()) * this.getRelicPerTCRefine();
     },
     
     getTradeAmountAvg: function() {
@@ -1175,11 +1193,14 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
                 // title: "Time Crystals per Sacrifice",
                 val: 0,
             },
+            {name: "getTCValueOfAlicorns" },
+            {name: "getRelicValueOfAlicorns" },
             {
                 name: "getRelicPerTCRefine",
                 // title: "Relics Per Time Crystal Refine",
                 val: 0,
             },
+            {name: "getRelicValueOfCurrentTCs" },
             {
                 name: "getTradeAmountAvg",
                 // title: "Blazars for Shatter Engine",
