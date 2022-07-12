@@ -26,6 +26,12 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             "getZebraTradesToMaxTit": "Max Zebra Trades to Cap Titanium",
             "getZebraTitTradeChance": "Chance to Recieve Titanium Per Zebra Trade",
             
+            "engineers": "Engineers",
+            "engResource": "Resource",
+            "engAssigned": "Assigned",
+            "engCraftsPerSecond": "Crafts per Second",
+            "engProdPerSecond": "Production per Second",
+
             "unicorns": "Unicorns",
 
             "getBestUniBuilding": "Best Unicorn Building",
@@ -535,6 +541,57 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         let tradeChance = 0.15 + shipAmount * 0.0035;
         return game.getDisplayValueExt(Math.min(tradeChance*100, 100)) + "%";
     },
+
+    // ENGINEERS :
+    getCurrentCraftedResources: function*() {
+        for (let crafted of this.game.workshop.crafts) {
+            if (crafted.value > 0) {
+                yield crafted;
+            }
+        }
+    },
+
+    renderCraftedResources: function*() {
+        for (let crafted of this.getCurrentCraftedResources()) {
+            const tps = this.game.getTicksPerSecondUI();
+            const craftsPerSecond = this.game.workshop.getEffectEngineer(crafted.name, false) * tps;
+
+            yield $r("tr", {key: "craft-" + crafted.name}, 
+                this.renderResourceNameCell(crafted.name),
+                $r("td", null, this.game.getDisplayValueExt(crafted.value)),
+                $r("td", null, this.game.getDisplayValueExt(craftsPerSecond) + "/" + $I("unit.s")),
+                $r("td", null, this.game.getDisplayValueExt(this.game.workshop.getEffectEngineer(crafted.name, true) * tps) + "/" + $I("unit.s")),
+            );
+
+            for (let price of crafted.prices) {
+                yield $r("tr", {key: "craft-" + crafted.name + "-" + price.name},
+                    $r("td", {colSpan: 2}, ""),
+                    this.renderResourceNameCell(price.name),
+                    $r("td", null, this.game.getDisplayValueExt(-craftsPerSecond*price.val) + "/" + $I("unit.s")),
+                );
+            }
+
+            yield $r("tr", {
+                key: "space-" + crafted.name,
+                style: {
+                    lineHeight: "0.25em"
+                }
+            }, $r("td", null, "\u00a0" /* non breaking space */ ));
+        }
+    },
+    renderEngineerTable: function() {
+        return $r("table", {className: "statTable stats-wider", key: "table-engineers"},
+            $r("tr", null, 
+                $r("th", null, this.i18n("engResource")),
+                $r("th", null, this.i18n("engAssigned")),
+                $r("th", null, this.i18n("engCraftsPerSecond")),
+                $r("th", null, this.i18n("engProdPerSecond")),
+
+            ),
+            Array.from(this.renderCraftedResources()),
+        );
+    },
+
 
     // UNICORN :
 
@@ -1270,6 +1327,10 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         {
             name: "titanium",
             // title: "Titanium"
+        },
+        {
+            name: "engineers",
+            useFunction: "renderEngineerTable",
         },
         {
             name: "unicorns",
