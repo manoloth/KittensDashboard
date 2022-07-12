@@ -83,6 +83,8 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             "getUraniumForThoriumReactors": "Uranium/Sec for Thorium Reactors",
             "getDarkFutureYears": "Years until Dark Future",
             "getBestRelicBuilding": "Best improve Relic Building",
+            "getBlackcoinValueOfRelics": "Blackcoin value of Relics",
+            "getRelicValueOfBlackcoins": "Relic value of Blackcoins",
             "getAIlv15Time": "Time until AI level 15",
             "getTimeUntilNextHashLevel": "Time until Next Hash Level",
             "getfutureSeason": "Seasons until next TemporalParadox",
@@ -1059,6 +1061,13 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
         }
         return next;
     },
+
+    getBlackcoinValueOfRelics: function() {
+        return this.game.resPool.get("relic").value / this.game.calendar.cryptoPrice;
+    },
+    getRelicValueOfBlackcoins: function() {
+        return this.game.resPool.get("blackcoin").value * this.game.calendar.cryptoPrice;
+    },
     
     getDarkFutureYears: function(){
         var yearsLeft = this.game.calendar.darkFutureYears(true);
@@ -1296,6 +1305,8 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
                 //title: "Besting building for increase relic",
                 val: 0,
             },
+            {name: "getBlackcoinValueOfRelics" },
+            {name: "getRelicValueOfBlackcoins" },
             {
                 name: "getAIlv15Time",
                 val: 0,
