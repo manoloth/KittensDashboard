@@ -378,7 +378,7 @@ dojo.declare("classes.managers.NummonStatsManager", com.nuclearunicorn.core.TabM
             for (let s/*eason*/ = 0; s < this.game.calendar.seasons.length; s++) {
                 let mod = this.getWeatherMod(catnip, weathers[w], s);
                 let catnipValue = this.getPotentialCatnip(mod);
-                let text = game.getDisplayValue(catnipValue)
+                let text = game.getDisplayValueExt(catnipValue)
                 // text += " (" + mod + ")";
 
                 cells.push($r("td", {
